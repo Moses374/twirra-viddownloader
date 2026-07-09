@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Twirra",
+    "slug": "twirra",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0d0d0d",
+    "icon": "./assets/icon.png",
+    "android": {
+      "package": "com.moses.twirra",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0d0d0d"
+      },
+      "permissions": [
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VIDEO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Twirra to save downloaded videos to your gallery.",
+          "savePhotosPermission": "Allow Twirra to save downloaded videos to your gallery.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": false
+          }
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1b25d2e5-6c68-42de-8a4f-9a42f55ed647"
+      }
+    },
+    "owner": "moses374"
+  }
+}

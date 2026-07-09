@@ -23,7 +23,7 @@ export default function HomeScreen() {
 
     setBusy(true);
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      const { status } = await MediaLibrary.requestPermissionsAsync(true);
       if (status !== "granted") {
         Alert.alert("Permission needed", "Allow photo library access to save videos.");
         return;
