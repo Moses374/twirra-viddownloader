@@ -2,8 +2,7 @@
 import * as FileSystem from "expo-file-system";
 import { getAccessToken, refreshAccessToken } from "./auth";
 
-// Set this to your VPS's HTTPS domain, e.g. "https://twirra.yourdomain.com"
-export const API_BASE_URL = "https://your-vps-domain.example.com";
+export const API_BASE_URL = "https://twirra.immercel.com";
 
 async function attemptDownload(tweetUrl, accessToken, onProgress) {
   const fileUri = FileSystem.cacheDirectory + `twirra_${Date.now()}.mp4`;
