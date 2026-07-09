@@ -1,0 +1,19 @@
+# Secrets
+**/.env
+
+# Python
+**/__pycache__/
+*.pyc
+server/venv/
+server/.venv/
+
+# Node / Expo
+app/node_modules/
+app/.expo/
+app/dist/
+app/npm-debug.*
+app/*.log
+
+# OS
+.DS_Store
+Thumbs.db

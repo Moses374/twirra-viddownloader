@@ -1,0 +1,22 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Downloads (runtime temp files)
+downloads/
+/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
