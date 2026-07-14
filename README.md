@@ -133,56 +133,97 @@ curl https://twirra.yourdomain.com/health
 
 ---
 
-## 2. Expo APK build
+## 2. Building the APK
 
-### 2.1 Install tooling (on your dev machine)
+There are two ways to build the Android APK. GitHub Actions is the primary
+path (no build queue, unlimited free builds on your own CI minutes); EAS is
+a simpler fallback if you'd rather not manage a signing keystore yourself.
+
+### Option A: GitHub Actions (recommended for frequent rebuilds)
+
+The workflow at `.github/workflows/build-apk.yml` runs `expo prebuild` +
+`gradlew assembleRelease` on a GitHub-hosted runner and signs the APK with a
+release keystore stored as repo secrets.
+
+**One-time setup** (already done for this repo — only needed again if you
+fork it or lose the keystore):
+
+```bash
+# Generate a release keystore (keytool ships with any JDK)
+keytool -genkeypair -v -keystore twirra-release.keystore -alias twirra-key \
+  -keyalg RSA -keysize 2048 -validity 10000
+
+# Store it and its password as GitHub Actions secrets (never commit the keystore itself)
+base64 -w0 twirra-release.keystore | gh secret set KEYSTORE_BASE64 --repo Moses374/twirra-viddownloader
+gh secret set KEYSTORE_PASSWORD --repo Moses374/twirra-viddownloader --body "<password>"
+gh secret set KEY_PASSWORD --repo Moses374/twirra-viddownloader --body "<same password, PKCS12 requires it>"
+gh secret set KEY_ALIAS --repo Moses374/twirra-viddownloader --body "twirra-key"
+```
+
+Back up `twirra-release.keystore` somewhere durable outside the repo — see
+[`SECURITY.md`](./SECURITY.md) for why losing it is a real problem (you'd
+lose the ability to update the already-installed app).
+
+**Every rebuild** — trigger it manually and download the result:
+
+```bash
+gh workflow run build-apk.yml --repo Moses374/twirra-viddownloader
+
+# Watch it and grab the run ID from `gh run list`, then:
+gh run download <run-id> --repo Moses374/twirra-viddownloader --dir ./out
+```
+
+This downloads a `twirra-release-apk` folder containing `app-release.apk`.
+GitHub Actions artifacts require GitHub auth to fetch, so there's no public
+link to open directly on your phone — instead, either:
+- copy the APK to your phone via cable/cloud storage, or
+- serve it temporarily from your dev machine over your own Wi-Fi:
+  `python -m http.server 8090` from the folder containing the APK, then
+  open `http://<your-PC's-LAN-IP>:8090/app-release.apk` on your phone.
+
+### Option B: EAS Build (simpler, but queues on the free tier)
 
 ```bash
 cd app
 npm install
 npm install -g eas-cli
-```
-
-### 2.2 Point the app at your VPS
-
-Edit `app/services/api.js` and set:
-
-```js
-export const API_BASE_URL = "https://twirra.yourdomain.com";
-```
-
-### 2.3 Log in to Expo / EAS
-
-```bash
 eas login
 eas build:configure
 ```
 
-This generates an `eas.json`. For a simple installable APK (not an AAB for the Play Store), make sure your Android build profile uses:
+Confirm `eas.json`'s `preview` profile builds an APK, not an AAB:
 
 ```json
 {
   "build": {
     "preview": {
-      "android": {
-        "buildType": "apk"
-      }
+      "android": { "buildType": "apk" }
     }
   }
 }
 ```
 
-### 2.4 Build
-
 ```bash
 eas build --platform android --profile preview
 ```
 
-EAS builds in the cloud and gives you a download link for the `.apk` when done (also available at https://expo.dev under your project).
+EAS manages its own cloud signing keystore automatically (no keytool setup
+needed) and gives you a public download link when the build finishes —
+open it directly on your Android phone.
 
-### 2.5 Install on your phone
+### Point the app at your VPS (either option)
 
-Download the `.apk` link on your Android phone and open it (allow "install unknown apps" for your browser/file manager if prompted).
+Before building, confirm `app/services/api.js` has:
+
+```js
+export const API_BASE_URL = "https://twirra.yourdomain.com";
+```
+
+### Install on your phone
+
+Open the `.apk` (via download link or local transfer) on your Android
+phone and allow "install unknown apps" for whichever app opened it, if
+prompted.
 
 ---
 
