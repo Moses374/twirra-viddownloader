@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 
 const ACCESS_TOKEN_KEY = "twirra_access_token";
 const REFRESH_TOKEN_KEY = "twirra_refresh_token";
+let refreshRequest = null;
 
 export async function saveTokens(accessToken, refreshToken) {
   await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
@@ -40,7 +41,7 @@ export async function login(apiBaseUrl, username, password) {
   await saveTokens(data.access_token, data.refresh_token);
 }
 
-export async function refreshAccessToken(apiBaseUrl) {
+async function performTokenRefresh(apiBaseUrl) {
   const refreshToken = await getRefreshToken();
   if (!refreshToken) throw new Error("No refresh token available");
 
@@ -49,11 +50,23 @@ export async function refreshAccessToken(apiBaseUrl) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
   });
-  if (!res.ok) {
+  if (res.status === 401 || res.status === 403) {
     await clearTokens();
     throw new Error("Session expired. Please log in again.");
+  }
+  if (!res.ok) {
+    throw new Error("Could not refresh your session. Check your connection and try again.");
   }
   const data = await res.json();
   await saveTokens(data.access_token, data.refresh_token);
   return data.access_token;
+}
+
+export function refreshAccessToken(apiBaseUrl) {
+  if (!refreshRequest) {
+    refreshRequest = performTokenRefresh(apiBaseUrl).finally(() => {
+      refreshRequest = null;
+    });
+  }
+  return refreshRequest;
 }

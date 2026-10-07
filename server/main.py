@@ -13,7 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 import auth
-from downloader import DownloadError, InvalidUrlError, cleanup_file, download_video
+from downloader import DownloadError, InvalidUrlError, NoVideoError, cleanup_file, download_video
 
 RATE_LIMIT_PER_MINUTE = os.getenv("RATE_LIMIT_PER_MINUTE", "10")
 CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",")]
@@ -53,6 +53,8 @@ def download(
         file_path = download_video(url)
     except InvalidUrlError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except NoVideoError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except DownloadError as exc:
         raise HTTPException(status_code=502, detail=f"Failed to fetch video: {exc}") from exc
 
